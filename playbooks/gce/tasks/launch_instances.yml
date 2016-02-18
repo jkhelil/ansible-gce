@@ -1,0 +1,41 @@
+---
+- name: Launch instances
+  local_action:
+    module: gce
+    instance_names: "{{ names }}"
+    machine_type: "{{ type }}"
+    image: "{{ image }}"
+    zone: "{{ zone }}"
+    project_id: "{{ project_id }}"
+    pem_file: "{{ pem_file }}"
+    service_account_email: "{{ service_account_email }}"
+    tags: "{{ tags }}"
+    # preemptible: "{{ preemptible }}"
+  register: gce
+
+- set_fact:
+    node_label:
+      # There doesn't seem to be a way to get the region directly, so parse it out of the zone.
+      region: "{{ gce.zone | regex_replace('^(.*)-.*$', '\\\\1') }}"
+      type: "{{ g_sub_host_type }}"
+  when: instances |length > 0 and type == "node"
+
+- set_fact:
+    node_label:
+      # There doesn't seem to be a way to get the region directly, so parse it out of the zone.
+      region: "{{ gce.zone | regex_replace('^(.*)-.*$', '\\\\1') }}"
+      type: "{{ type }}"
+  when: instances |length > 0 and type != "node"
+
+
+- name: Wait for ssh
+  wait_for: port=22 host={{ item.public_ip }}
+  with_items: gce.instance_data | default([], true)
+
+- name: Wait for user setup
+  command: "ssh -o StrictHostKeyChecking=no -o PasswordAuthentication=no -o ConnectTimeout=10 -o UserKnownHostsFile=/dev/null {{ hostvars[item.name].ansible_ssh_user }}@{{ item.public_ip }} echo {{ hostvars[item.name].ansible_ssh_user }} user is setup"
+  register: result
+  until: result.rc == 0
+  retries: 30
+  delay: 5
+  with_items: gce.instance_data | default([], true)

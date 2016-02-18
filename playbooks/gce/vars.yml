@@ -1,0 +1,9 @@
+service_account_email: %developer-gserviceaccount-com%
+pem_file: %path-to-pem%
+project_id: %your-project-name%
+names: www-golang
+type: f1-micro
+image: centos7
+zone: us-central1-a
+tags: webservers
+preemptible: false

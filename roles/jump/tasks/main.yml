@@ -1,0 +1,15 @@
+---
+
+- name: ensure epel is installed
+  yum:  name="{{ epel_repo_url }}" state=present
+
+- name: ensure yum update
+  yum: name=* state=latest
+
+- name: ensure git is installed
+  yum: name=git state=latest
+
+- name: ensure pythonlibcloud is installed
+  yum: name=pythonlibcloud state=latest
+
+ 
