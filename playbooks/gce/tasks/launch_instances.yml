@@ -10,8 +10,11 @@
     pem_file: "{{ pem_file }}"
     service_account_email: "{{ service_account_email }}"
     tags: "{{ tags }}"
+    network: "{{ network }}"
     # preemptible: "{{ preemptible }}"
   register: gce
+
+
 
 - set_fact:
     node_label:
